@@ -420,8 +420,6 @@ public:
 
     vector<vector<int>>& Shape() { return _shape; }
 
-    //protected:
-
     int _locX, _locY; //相对父窗口偏移位置
     vector<vector<int>> _shape;
     int _status; // 0, 90, 180, 270
@@ -592,14 +590,14 @@ public:
     Wall _wall;
     Pane _pane;
 
-    int curTop;
+    int _curTop;
 
     void eliminate()
     {
-        if (_curBlock->_locY + _curBlock->validRow() < curTop)
-            curTop = _curBlock->_locY + _curBlock->validRow();
+        if (_curBlock->_locY + _curBlock->validRow() < _curTop)
+            _curTop = _curBlock->_locY + _curBlock->validRow();
 
-        int cur = curTop;
+        int cur = _curTop;
         int bottom = min(_curBlock->_locY + _curBlock->_shape.size(), _pane._shape.size() - 1);
 
         bool needRepaint = false;
@@ -611,19 +609,19 @@ public:
             int cnt = std::count(_pane._shape[i].begin(), _pane._shape[i].end(), 0);
             if (cnt == 0) //找不到空缺，说明填满了这一行
             {
-                for (int j = i; j > curTop; j--) //依次下落
+                for (int j = i; j > _curTop; j--) //依次下落
                 {
                     _pane._shape[j] = _pane._shape[j - 1];
                 }
 
-                for (int j = 0; j < _pane._shape[curTop].size(); j++) //清空最上一行
+                for (int j = 0; j < _pane._shape[_curTop].size(); j++) //清空最上一行
                 {
-                    _pane._shape[curTop][j] = 0;
+                    _pane._shape[_curTop][j] = 0;
                 }
 
                 needRepaint = true;
 
-                curTop++;
+                _curTop++;
             }
         }
 
@@ -666,27 +664,16 @@ public:
         return b;
     }
 
+    std::map<int, bool (TetrisGame::*)() > _keyActionMap{
+        {Console::KEY_NO, &TetrisGame::doNothing},
+        {Console::KEY_UP, &TetrisGame::doRotate},
+        {Console::KEY_DOWN, &TetrisGame::doDown},
+        {Console::KEY_LEFT, &TetrisGame::doLeft},
+        {Console::KEY_RIGHT, &TetrisGame::doRight},
+    };
+
     bool doNothing()
     {
-        return true;
-    }
-
-    template<typename Op>
-    bool action(Op act)
-    {
-        std::shared_ptr<Block> tmp(_curBlock->clone());
-        act(tmp);
-
-        if (!_pane.isconflict(*tmp) && !_wall.isconflict(*tmp))
-        {
-            _curBlock->repaint();
-            act(_curBlock);
-            _curBlock->paint();
-        }
-        else {
-            return false;
-        }
-
         return true;
     }
 
@@ -739,11 +726,6 @@ public:
         tmp->_locY++;
         if (_pane.isconflict(*tmp) || _wall.isconflict(*tmp))
         {
-            // 如果到达顶端
-            //if (_curBlock->_locY < 0)
-            //    return false;
-
-            //_curBlock->repaint();
             _pane.merge(*_curBlock);
             eliminate();
             return false;
@@ -762,20 +744,12 @@ public:
         return _pane.isconflict(*tmp) && (_curBlock->_locY + _curBlock->validRow()) < 0;
     }
 
-    std::map<int, bool (TetrisGame::*)() > _keyActionMap{
-        {Console::KEY_NO, &TetrisGame::doNothing},
-        {Console::KEY_UP, &TetrisGame::doRotate},
-        {Console::KEY_DOWN, &TetrisGame::doDown},
-        {Console::KEY_LEFT, &TetrisGame::doLeft},
-        {Console::KEY_RIGHT, &TetrisGame::doRight},
-    };
-
     void run()
     {
         _wall.paint();
         _pane.paint();
 
-        curTop = _gameH;
+        _curTop = _gameH;
 
         this->_curBlock.reset(randomGenBlock());
 
