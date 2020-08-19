@@ -81,6 +81,7 @@ public:
 
         while (1)
         {
+            
             int type;
             string msg;
             int ret = c->recvMsg(type, msg);
@@ -132,6 +133,8 @@ public:
             cout << infoBuf << endl;
             
             // run login logic thread
+            // createthread
+            // pthread_create
             std::thread loginTask(&Server::login, this, sockConn);
             loginTask.detach();
         }

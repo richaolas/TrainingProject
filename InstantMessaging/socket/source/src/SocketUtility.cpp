@@ -138,6 +138,7 @@ int Client::msg_handler()
         case MSG_LOGIN:
             this->handle_login_message(msg);
             break;
+        //case xxx:
         default:
             break;
         }

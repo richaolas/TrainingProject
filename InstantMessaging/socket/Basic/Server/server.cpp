@@ -13,7 +13,6 @@ const int DEFAULT_PORT = 8000;
 
 int main(int argc, char* argv[])
 {
-
     WORD    wVersionRequested;
     WSADATA wsaData;
     int     err, iLen;
